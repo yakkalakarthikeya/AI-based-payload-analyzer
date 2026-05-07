@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Payload Analyzer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0b1220, #111827, #1f2937);
+            min-height: 100vh;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 1100px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 24px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 28px 30px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 34px;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            color: #cbd5e1;
+            font-size: 15px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 22px;
+            padding: 24px 30px 30px;
+        }
+
+        .panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 18px;
+            padding: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #e5e7eb;
+            font-size: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 220px;
+            border: none;
+            outline: none;
+            resize: vertical;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #111827;
+            background: #f8fafc;
+        }
+
+        .main-btn {
+            margin-top: 16px;
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(90deg, #06b6d4, #22c55e);
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .example-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .example-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 9px 14px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.14);
+            color: white;
+            font-size: 13px;
+            transition: 0.2s ease;
+        }
+
+        .example-btn:hover {
+            background: rgba(255,255,255,0.22);
+        }
+
+        .card {
+            background: rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+        }
+
+        .card h3 {
+            margin: 0 0 12px;
+            font-size: 15px;
+            color: #dbeafe;
+        }
+
+        .prediction-text {
+            font-size: 25px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .safe {
+            color: #4ade80;
+        }
+
+        .malicious {
+            color: #f87171;
+        }
+
+        .warning {
+            color: #fbbf24;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            font-weight: 700;
+        }
+
+        .value {
+            color: #f8fafc;
+            line-height: 1.65;
+            font-size: 15px;
+            word-break: break-word;
+        }
+
+        .note {
+            margin-top: 10px;
+            color: #cbd5e1;
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <script>
+        function setExample(value) {
+            const box = document.getElementById("payload");
+            box.value = value;
+            box.focus();
+        }
+
+        function clearPayload() {
+            const box = document.getElementById("payload");
+            box.value = "";
+            box.focus();
+        }
+    </script>
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <h1>AI Payload Analyzer</h1>
+            <p>Random Forest + Explainable AI for safe and malicious payload detection</p>
+        </div>
+
+        <div class="layout">
+            <div class="panel">
+                <form action="/predict" method="post">
+                    <label for="payload">Enter payload</label>
+                    <textarea id="payload" name="payload" placeholder="Type a payload here...">{{ user_input if user_input else '' }}</textarea>
+                    <button class="main-btn" type="submit">Analyze Payload</button>
+                </form>
+
+                <div class="example-row">
+                    <button class="example-btn" type="button" onclick="setExample('hello world')">Safe Text</button>
+                    <button class="example-btn" type="button" onclick="setExample('username=admin')">Key-Value Input</button>
+                    <button class="example-btn" type="button" onclick="setExample(&quot;' OR 1=1 --&quot;)">SQLi Example</button>
+                    <button class="example-btn" type="button" onclick="setExample('&lt;script&gt;alert(1)&lt;/script&gt;')">XSS Example</button>
+                    <button class="example-btn" type="button" onclick="clearPayload()">Clear</button>
+                </div>
+
+                <div class="note">
+                    Each explanation is generated from the actual payload content, matched patterns, and prediction confidence.
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="card">
+                    <h3>Prediction</h3>
+                    {% if prediction %}
+                        <p class="prediction-text {{ prediction_class }}">{{ prediction }}</p>
+                    {% else %}
+                        <p class="value">No prediction yet.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Confidence</h3>
+                    {% if confidence is not none %}
+                        <span class="badge">{{ confidence }}%</span>
+                    {% else %}
+                        <p class="value">No confidence available yet.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Explainable AI Reason</h3>
+                    {% if explanation %}
+                        <p class="value">{{ explanation }}</p>
+                    {% else %}
+                        <p class="value">The explanation will change based on the exact payload you enter.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Input Payload</h3>
+                    {% if user_input %}
+                        <p class="value">{{ user_input }}</p>
+                    {% else %}
+                        <p class="value">No input yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
